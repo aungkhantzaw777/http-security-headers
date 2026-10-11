@@ -2,9 +2,9 @@
 
 namespace AungKhant\HttpSecurityHeaders\Tests;
 
+use AungKhant\HttpSecurityHeaders\SkeletonServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use AungKhant\HttpSecurityHeaders\SkeletonServiceProvider;
 
 class TestCase extends Orchestra
 {
