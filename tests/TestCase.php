@@ -2,6 +2,13 @@
 
 namespace AungKhant\HttpSecurityHeaders\Tests;
 
-use PHPUnit\Framework\TestCase as BaseTestCase;
+use AungKhant\HttpSecurityHeaders\SecurityHeadersServiceProvider;
+use Orchestra\Testbench\TestCase as BaseTestCase;
 
-class TestCase extends BaseTestCase {}
+abstract class TestCase extends BaseTestCase
+{
+    protected function getPackageProviders($app): array
+    {
+        return [SecurityHeadersServiceProvider::class];
+    }
+}

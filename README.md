@@ -1,12 +1,13 @@
 # HTTP Security Headers
 
-A PHP string-backed enum for common HTTP security header names. Use `SecurityHeader` to reference header names in your application; you supply the header values and apply them to responses.
+A Laravel security headers toolkit with configurable presets, opt-in response middleware, and reusable string-backed header enums. The existing `SecurityHeader` enum API is unchanged.
 
 ## Requirements
 
-- PHP 8.4 or later (8.x)
+- PHP 8.3 or later (8.x)
+- Laravel 12 or Laravel 13
 
-The enum has no framework dependencies and can be used in any PHP application.
+The enum itself can still be used without booting Laravel. Installing the package now also installs its Illuminate dependencies.
 
 ## Installation
 
@@ -14,7 +15,79 @@ The enum has no framework dependencies and can be used in any PHP application.
 composer require aungkhantzaw777/http-security-headers
 ```
 
-## Usage
+## Laravel setup
+
+Laravel automatically discovers `SecurityHeadersServiceProvider`. Publish the optional configuration:
+
+```bash
+php artisan vendor:publish --tag=security-headers-config
+```
+
+Add the middleware to the existing `withMiddleware` callback in `bootstrap/app.php`:
+
+```php
+use AungKhant\HttpSecurityHeaders\Http\Middleware\SecurityHeaders;
+use Illuminate\Foundation\Configuration\Middleware;
+
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->append(SecurityHeaders::class);
+})
+```
+
+Alternatively, apply `SecurityHeaders::class` to specific routes with `->middleware(SecurityHeaders::class)`. Middleware is not added automatically.
+
+### Configuration
+
+```php
+return [
+    'enabled' => true,
+    'preset' => 'basic',
+    'headers' => [
+        'X-Frame-Options' => 'DENY',
+        'Referrer-Policy' => false,
+    ],
+    'remove' => ['X-Powered-By'],
+];
+```
+
+Header names are matched case-insensitively. String overrides replace preset values; `false` or `null` omits a header from the resolved set. Omission preserves any header already supplied by the application. Use `remove` to explicitly strip an existing response header; removal takes precedence over presets and overrides. Removal only affects headers present on the Laravel response, not headers added later by a web server or proxy.
+
+When `enabled` is `false`, middleware leaves the response unchanged, including headers in `remove`. When enabled, resolved headers replace matching response headers. Invalid preset names and malformed header names or values raise exceptions.
+
+### Presets
+
+| Header | `basic` | `strict` | `api` |
+| --- | --- | --- | --- |
+| X-Content-Type-Options | nosniff | nosniff | nosniff |
+| X-Frame-Options | SAMEORIGIN | DENY | DENY |
+| Referrer-Policy | strict-origin-when-cross-origin | no-referrer | no-referrer |
+| Permissions-Policy | — | camera=(), microphone=(), geolocation=() | — |
+
+`basic` is the default. `strict` disables framing and access to the listed browser features; choose it explicitly when those restrictions suit your app. `api` uses the restrictive framing and referrer settings without browser feature restrictions. No preset adds CSP, HSTS, or cross-origin isolation headers. Configure these explicitly to match your application and deployment.
+
+### Resolve headers directly
+
+```php
+use AungKhant\HttpSecurityHeaders\SecurityHeadersManager;
+
+$headers = app(SecurityHeadersManager::class)->headers();
+// array<string, string>, or [] when disabled
+```
+
+For resolution without a Laravel container:
+
+```php
+use AungKhant\HttpSecurityHeaders\Enums\SecurityPreset;
+use AungKhant\HttpSecurityHeaders\Support\HeaderResolver;
+
+$headers = (new HeaderResolver)->resolve(
+    SecurityPreset::Basic,
+    overrides: ['X-Frame-Options' => 'DENY'],
+    remove: ['Referrer-Policy'],
+);
+```
+
+## Enum usage
 
 Import the enum and use `->value` to get the HTTP header name:
 
@@ -98,6 +171,17 @@ foreach (SecurityHeader::cases() as $header) {
 | `StrictTransportSecurity` | `Strict-Transport-Security` |
 | `XContentTypeOptions` | `X-Content-Type-Options` |
 | `XFrameOptions` | `X-Frame-Options` |
+
+## Development
+
+```bash
+composer install
+composer test
+composer analyse
+vendor/bin/pint --test
+```
+
+Tests cover the enum API, preset resolution, overrides, provider registration, configuration publishing, discovery metadata, and middleware responses. CI runs supported PHP versions against Laravel 12 and 13 with Testbench 10 and 11 respectively.
 
 ## License
 
