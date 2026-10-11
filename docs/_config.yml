@@ -1,3 +1,14 @@
 title: HTTP Security Headers
-description: Documentation for the HTTP Security Headers package
+description: >-
+  A PHP enum package for HTTP security header names.
+  Installation, supported headers, and usage examples
+  for PHP and Laravel applications.
+
+url: "https://aungkhantzaw777.github.io"
+baseurl: "/http-security-headers"
+
 theme: jekyll-theme-cayman
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
