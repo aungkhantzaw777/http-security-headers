@@ -5,12 +5,13 @@ A PHP string-backed enum for common HTTP security header names. Use `SecurityHea
 ## Requirements
 
 - PHP 8.4 or later (8.x)
-- Illuminate Contracts 11, 12, or 13 (installed through Composer)
+
+The enum has no framework dependencies and can be used in any PHP application.
 
 ## Installation
 
 ```bash
-composer require aungkhantzaw777/http-security-header
+composer require aungkhantzaw777/http-security-headers
 ```
 
 ## Usage
@@ -25,9 +26,25 @@ $header = SecurityHeader::ContentSecurityPolicy;
 echo $header->value; // Content-Security-Policy
 ```
 
+For standalone PHP scripts, load Composer's autoloader before using the enum:
+
+```php
+require __DIR__ . '/vendor/autoload.php';
+```
+
+### PHP response
+
+Use the enum value with PHP's `header()` function before sending output:
+
+```php
+use AungKhant\HttpSecurityHeaders\Enums\SecurityHeader;
+
+header(SecurityHeader::XContentTypeOptions->value . ': nosniff');
+```
+
 ### Laravel response
 
-Pass enum values as header names when building a response:
+In a Laravel application, pass enum values as header names when building a response:
 
 ```php
 use AungKhant\HttpSecurityHeaders\Enums\SecurityHeader;
@@ -81,12 +98,6 @@ foreach (SecurityHeader::cases() as $header) {
 | `StrictTransportSecurity` | `Strict-Transport-Security` |
 | `XContentTypeOptions` | `X-Content-Type-Options` |
 | `XFrameOptions` | `X-Frame-Options` |
-
-## Testing
-
-```bash
-composer test
-```
 
 ## License
 
