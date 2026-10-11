@@ -1,4 +1,4 @@
-# HTTP Security Headers
+# Laravel HTTP Security Headers
 
 A Laravel security headers toolkit with configurable presets, opt-in response middleware, and reusable string-backed header enums. The existing `SecurityHeader` enum API is unchanged.
 
@@ -15,36 +15,81 @@ The enum itself can still be used without booting Laravel. Installing the packag
 composer require aungkhantzaw777/http-security-headers
 ```
 
-## Laravel setup
+## Quick start
 
-Laravel automatically discovers `SecurityHeadersServiceProvider`. Publish the optional configuration:
+Laravel automatically discovers `SecurityHeadersServiceProvider`. Enable the middleware to apply the default `basic` preset.
+
+Add `SecurityHeaders::class` to the existing `withMiddleware` callback in `bootstrap/app.php`. A minimal example looks like this; keep your application's existing routing and middleware configuration:
+
+```php
+use AungKhant\HttpSecurityHeaders\Http\Middleware\SecurityHeaders;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(web: __DIR__.'/../routes/web.php')
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(SecurityHeaders::class);
+    })
+    ->create();
+```
+
+### Apply to specific routes
+
+For selected routes, use route middleware instead of registering it globally:
+
+```php
+use AungKhant\HttpSecurityHeaders\Http\Middleware\SecurityHeaders;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/status', fn () => response()->json(['status' => 'ok']))
+    ->middleware(SecurityHeaders::class);
+```
+
+Installing the package alone does not change response headers. Middleware registration is opt-in.
+
+### Manual provider registration
+
+If your application disables package discovery, add this entry to the array in `bootstrap/providers.php`:
+
+```php
+AungKhant\HttpSecurityHeaders\SecurityHeadersServiceProvider::class,
+```
+
+## Configuration
+
+Publish `config/security-headers.php` when you want to customize the defaults:
 
 ```bash
 php artisan vendor:publish --tag=security-headers-config
 ```
 
-Add the middleware to the existing `withMiddleware` callback in `bootstrap/app.php`:
-
-```php
-use AungKhant\HttpSecurityHeaders\Http\Middleware\SecurityHeaders;
-use Illuminate\Foundation\Configuration\Middleware;
-
-->withMiddleware(function (Middleware $middleware): void {
-    $middleware->append(SecurityHeaders::class);
-})
-```
-
-Alternatively, apply `SecurityHeaders::class` to specific routes with `->middleware(SecurityHeaders::class)`. Middleware is not added automatically.
-
-### Configuration
+The default configuration is:
 
 ```php
 return [
     'enabled' => true,
     'preset' => 'basic',
+    'headers' => [],
+    'remove' => [],
+];
+```
+
+### Override or disable headers
+
+Use string header names or the existing enum's `->value` as configuration keys:
+
+```php
+use AungKhant\HttpSecurityHeaders\Enums\SecurityHeader;
+use AungKhant\HttpSecurityHeaders\Enums\SecurityPreset;
+
+return [
+    'enabled' => true,
+    'preset' => SecurityPreset::Basic->value,
     'headers' => [
-        'X-Frame-Options' => 'DENY',
-        'Referrer-Policy' => false,
+        SecurityHeader::XFrameOptions->value => 'DENY',
+        SecurityHeader::ReferrerPolicy->value => false,
+        'X-Custom-Header' => 'example',
     ],
     'remove' => ['X-Powered-By'],
 ];
@@ -54,7 +99,9 @@ Header names are matched case-insensitively. String overrides replace preset val
 
 When `enabled` is `false`, middleware leaves the response unchanged, including headers in `remove`. When enabled, resolved headers replace matching response headers. Invalid preset names and malformed header names or values raise exceptions.
 
-### Presets
+## Presets
+
+Select `basic`, `strict`, or `api` in configuration. The corresponding enum cases are `SecurityPreset::Basic`, `SecurityPreset::Strict`, and `SecurityPreset::Api`.
 
 | Header | `basic` | `strict` | `api` |
 | --- | --- | --- | --- |
@@ -65,16 +112,23 @@ When `enabled` is `false`, middleware leaves the response unchanged, including h
 
 `basic` is the default. `strict` disables framing and access to the listed browser features; choose it explicitly when those restrictions suit your app. `api` uses the restrictive framing and referrer settings without browser feature restrictions. No preset adds CSP, HSTS, or cross-origin isolation headers. Configure these explicitly to match your application and deployment.
 
-### Resolve headers directly
+## Resolve headers directly
+
+Resolve the singleton manager from Laravel's container or inject it into a controller or service:
 
 ```php
 use AungKhant\HttpSecurityHeaders\SecurityHeadersManager;
 
-$headers = app(SecurityHeadersManager::class)->headers();
-// array<string, string>, or [] when disabled
+$manager = app(SecurityHeadersManager::class);
+
+$manager->enabled();         // Whether the toolkit is enabled.
+$manager->headers();         // Final array<string, string>; [] when disabled.
+$manager->headersToRemove(); // Configured list<string>; [] when disabled.
 ```
 
-For resolution without a Laravel container:
+The manager reads the current `security-headers` configuration on each call. Resolving headers does not modify a response; middleware applies them.
+
+For resolution without a Laravel container, pass a preset and optional overrides directly. The resolver does not read application configuration or the `enabled` setting:
 
 ```php
 use AungKhant\HttpSecurityHeaders\Enums\SecurityPreset;
@@ -88,6 +142,8 @@ $headers = (new HeaderResolver)->resolve(
 ```
 
 ## Enum usage
+
+The namespace, cases, and string values of `AungKhant\HttpSecurityHeaders\Enums\SecurityHeader` remain compatible with existing enum usage.
 
 Import the enum and use `->value` to get the HTTP header name:
 
@@ -180,6 +236,8 @@ composer test
 composer analyse
 vendor/bin/pint --test
 ```
+
+Run `composer format` to apply the package's PHP formatting rules.
 
 Tests cover the enum API, preset resolution, overrides, provider registration, configuration publishing, discovery metadata, and middleware responses. CI runs supported PHP versions against Laravel 12 and 13 with Testbench 10 and 11 respectively.
 
