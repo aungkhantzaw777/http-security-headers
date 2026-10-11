@@ -2,9 +2,9 @@
 
 namespace AungKhant\HttpSecurityHeaders;
 
+use AungKhant\HttpSecurityHeaders\Commands\SkeletonCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use AungKhant\HttpSecurityHeaders\Commands\SkeletonCommand;
 
 class SkeletonServiceProvider extends PackageServiceProvider
 {
