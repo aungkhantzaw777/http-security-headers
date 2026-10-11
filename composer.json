@@ -1,5 +1,5 @@
 {
-    "name": ":vendor_slug/:package_slug",
+    "name": "aungkhantzaw777/http-security-header",
     "description": ":package_description",
     "keywords": [
         ":vendor_name",
@@ -35,13 +35,13 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "AungKhant\\HttpSecurityHeaders\\": "src/",
+            "AungKhant\\HttpSecurityHeaders\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
+            "AungKhant\\HttpSecurityHeaders\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -63,10 +63,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "AungKhant\\HttpSecurityHeaders\\SkeletonServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "Skeleton": "AungKhant\\HttpSecurityHeaders\\Facades\\Skeleton"
             }
         }
     },

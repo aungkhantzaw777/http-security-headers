@@ -71,7 +71,7 @@ php artisan vendor:publish --tag=":package_slug-views"
 ## Usage
 
 ```php
-$:variable = new VendorName\Skeleton();
+$:variable = new AungKhant\HttpSecurityHeaders();
 echo $:variable->echoPhrase('Hello, VendorName!');
 ```
 

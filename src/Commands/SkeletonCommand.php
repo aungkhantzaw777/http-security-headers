@@ -1,6 +1,6 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace AungKhant\HttpSecurityHeaders\Commands;
 
 use Illuminate\Console\Command;
 

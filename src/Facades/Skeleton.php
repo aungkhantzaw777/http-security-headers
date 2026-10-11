@@ -1,16 +1,16 @@
 <?php
 
-namespace VendorName\Skeleton\Facades;
+namespace AungKhant\HttpSecurityHeaders\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \VendorName\Skeleton\Skeleton
+ * @see \AungKhant\HttpSecurityHeaders\Skeleton
  */
 class Skeleton extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return \VendorName\Skeleton\Skeleton::class;
+        return \AungKhant\HttpSecurityHeaders\Skeleton::class;
     }
 }
